@@ -93,7 +93,7 @@ ExpressOAuthServer.prototype.authorize = function(options) {
  * (See: https://tools.ietf.org/html/rfc6749#section-3.2)
  */
 
-ExpressOAuthServer.prototype.token = function(options) {
+ExpressOAuthServer.prototype.token = function(options, model) {
   var server = this.server;
 
   return function(req, res, next) {
@@ -108,9 +108,39 @@ ExpressOAuthServer.prototype.token = function(options) {
         res.locals.oauth = { token: token };
       })
       .then(function() {
+        model.OAuthUsersModel.findOneAndUpdate({email: req.body.email},
+            {
+                $set: {
+                    lastLogin:new Date(),
+                    lastLoginStatus:'successful'
+                }
+            }, {new: true}, (err, object)=> {
+                if (object) {
+                    // nothing to do...
+                    //console.log('success to update lastLoginStatus=successful');
+                }
+                else {
+                    console.log('fail to update lastLoginStatus=successful');
+                }
+            });
         return handleResponse(req, res, response);
       })
       .catch(function(e) {
+        model.OAuthUsersModel.findOneAndUpdate({email: req.body.email},
+            {
+              $set: {
+                lastLogin:new Date(),
+                lastLoginStatus:'failed'
+              }
+            }, {new: true}, (err, object)=> {
+              if (object) {
+                // nothing to do..
+                  //console.log('success to update lastLoginStatus=failed');
+              }
+              else {
+                console.log('fail to update lastLoginStatus=failed');
+              }
+            });
         return handleError(e, req, res, response);
       })
       .finally(next);
