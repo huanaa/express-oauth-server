@@ -108,7 +108,8 @@ ExpressOAuthServer.prototype.token = function(options, model) {
         res.locals.oauth = { token: token };
       })
       .then(function() {
-        model.OAuthUsersModel.findOneAndUpdate({email: req.body.email},
+        if(req.body.grant_type=='password')
+          model.OAuthUsersModel.findOneAndUpdate({email: req.body.email},
             {
                 $set: {
                     lastLogin:new Date(),
@@ -126,7 +127,8 @@ ExpressOAuthServer.prototype.token = function(options, model) {
         return handleResponse(req, res, response);
       })
       .catch(function(e) {
-        model.OAuthUsersModel.findOneAndUpdate({email: req.body.email},
+        if(req.body.grant_type=='password')
+          model.OAuthUsersModel.findOneAndUpdate({email: req.body.email},
             {
               $set: {
                 lastLogin:new Date(),
